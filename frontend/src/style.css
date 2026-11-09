@@ -13,6 +13,9 @@ button { cursor: pointer; border: 0; border-radius: 8px; padding: 9px 12px; marg
 button:hover { background: #526da5; }
 .primary { background: #687ff0; font-weight: 700; margin: 16px 0 0; width: 100%; padding: 12px; }
 .selected button { background: #8068d9; }
+.unit-input { display: inline-flex; align-items: center; margin: 2px; }
+.unit-input button { margin: 0; border-radius: 8px 0 0 8px; }
+.unit-input .star { border-left: 1px solid #a895ed; border-radius: 0 8px 8px 0; background: #5e4ca6; }
 .suggestions { display: flex; flex-wrap: wrap; padding: 8px 0; }
 .suggestions button { background: #243859; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }

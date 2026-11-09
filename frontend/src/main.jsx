@@ -7,6 +7,7 @@ const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 function App() {
   const [units, setUnits] = useState([]);
   const [selected, setSelected] = useState([]);
+  const [stars, setStars] = useState({});
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [patch, setPatch] = useState(null);
@@ -52,9 +53,9 @@ function App() {
     {!meta.sample_n && <div className="notice">아직 배치 데이터가 없습니다. 백엔드에서 초기 배치를 실행해 주세요.</div>}
     <section className="panel">
       <h2>보유 유닛 <small>({selected.length}/10 · 2개 이상 필요)</small></h2>
-      <div className="selected">{selected.map((id) => <button key={id} onClick={() => setSelected(selected.filter((x) => x !== id))}>{units.find((u) => u.unit_id === id)?.name_ko || id} ×</button>)}</div>
+      <div className="selected">{selected.map((id) => <span className="unit-input" key={id}><button onClick={() => { setSelected(selected.filter((x) => x !== id)); setStars(({ [id]: _, ...rest }) => rest); }}>{units.find((u) => u.unit_id === id)?.name_ko || id} ×</button><button className="star" onClick={() => setStars({ ...stars, [id]: (stars[id] || 1) % 3 + 1 })}>{stars[id] || 1}★</button></span>)}</div>
       <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="유닛 검색" />
-      {query && <div className="suggestions">{filtered.map((unit) => <button key={unit.unit_id} onClick={() => { setSelected([...selected, unit.unit_id]); setQuery(""); }}>{unit.name_ko || unit.name_en}</button>)}</div>}
+      {query && <div className="suggestions">{filtered.map((unit) => <button key={unit.unit_id} onClick={() => { setSelected([...selected, unit.unit_id]); setStars({ ...stars, [unit.unit_id]: 1 }); setQuery(""); }}>{unit.name_ko || unit.name_en}</button>)}</div>}
       <button className="primary" onClick={recommend}>추천 보기</button>
       {error && <p className="error">{error}</p>}
     </section>
