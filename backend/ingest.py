@@ -25,6 +25,11 @@ def _store_match(db, match: dict) -> None:
     match_id = metadata.get("match_id")
     if not match_id:
         return
+    if info.get("queue_id") not in (None, 1100):
+        return
+    current_set = int(os.getenv("CURRENT_SET_NUMBER", "18"))
+    if info.get("tft_set_number") not in (None, current_set):
+        return
     db.execute(
         """INSERT OR REPLACE INTO matches
            (match_id,game_datetime,game_version,queue_id,set_number,raw_json,fetched_at)

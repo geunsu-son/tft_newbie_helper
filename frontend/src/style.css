@@ -1,0 +1,30 @@
+:root { font-family: system-ui, sans-serif; color: #edf2ff; background: #111827; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 960px; margin: auto; padding: 32px 18px 48px; }
+header { margin-bottom: 24px; }
+h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin: 4px 0; }
+h2 { margin: 0 0 14px; }
+.eyebrow { color: #8ea8ff; letter-spacing: .16em; font-size: .75rem; }
+.panel, .card, .notice { background: #1b263d; border: 1px solid #33415f; border-radius: 14px; padding: 18px; margin: 16px 0; }
+.notice { color: #ffd27d; }
+input { width: 100%; background: #0e1627; color: white; border: 1px solid #53668e; border-radius: 8px; padding: 12px; font-size: 1rem; }
+button { cursor: pointer; border: 0; border-radius: 8px; padding: 9px 12px; margin: 4px; background: #35486e; color: white; }
+button:hover { background: #526da5; }
+.primary { background: #687ff0; font-weight: 700; margin: 16px 0 0; width: 100%; padding: 12px; }
+.selected button { background: #8068d9; }
+.suggestions { display: flex; flex-wrap: wrap; padding: 8px 0; }
+.suggestions button { background: #243859; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.card { margin: 0; }
+.card h3 { display: inline-block; margin: 0 12px 12px 0; }
+.card strong { color: #8ee3bd; }
+.card p { color: #bdc9e6; }
+.next { color: #ffd27d !important; }
+.section-title { display: flex; align-items: center; justify-content: space-between; }
+.section-title span, footer { color: #93a4c7; font-size: .88rem; }
+.error { color: #ff9c9c; }
+.patch a { color: #aabaff; word-break: break-all; }
+footer { margin-top: 26px; text-align: center; }
+.riot { font-size: .75rem; margin-top: 10px; }
+@media (max-width: 500px) { main { padding: 24px 12px 36px; } .section-title { align-items: flex-start; gap: 8px; } }

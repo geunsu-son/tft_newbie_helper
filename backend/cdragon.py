@@ -8,15 +8,15 @@ import httpx
 from .db import transaction
 
 
-CDRAGON_URL = "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json"
+CDRAGON_URL = "https://raw.communitydragon.org/latest/cdragon/tft/ko_kr.json"
 
 
-def _items(payload: dict[str, Any]) -> list[dict[str, Any]]:
-    for key in ("items", "champions", "setData"):
-        value = payload.get(key)
-        if isinstance(value, list):
-            return value
-    return []
+def _units(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    units = list(payload.get("champions", []))
+    for set_data in payload.get("setData", []):
+        if isinstance(set_data, dict):
+            units.extend(set_data.get("champions", []))
+    return units
 
 
 def load_units(path: str | None = None, client: httpx.Client | None = None) -> int:
@@ -27,9 +27,9 @@ def load_units(path: str | None = None, client: httpx.Client | None = None) -> i
     count = 0
     now = dt.datetime.now(dt.UTC).isoformat()
     with transaction() as db:
-        for item in _items(payload):
+        for item in _units(payload):
             unit_id = item.get("apiName") or item.get("id")
-            if not unit_id or "TFTUnit" not in unit_id:
+            if not unit_id or not unit_id.startswith("TFT"):
                 continue
             name = item.get("name") or item.get("displayName") or unit_id
             db.execute(
