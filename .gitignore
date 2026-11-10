@@ -11,3 +11,4 @@ venv/
 dist/
 frontend/dist/
 data/cache/
+data/*.pid

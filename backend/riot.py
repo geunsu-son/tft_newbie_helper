@@ -47,7 +47,7 @@ class RiotClient:
             entries.extend(self.league(path).get("entries", []))
         for tier in ("EMERALD", "DIAMOND"):
             for division in ("I", "II", "III", "IV"):
-                for page in range(page_limit):
+                for page in range(1, page_limit + 1):
                     page_entries = self.league(
                         f"entries/{tier}/{division}?page={page}"
                     )

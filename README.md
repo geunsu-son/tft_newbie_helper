@@ -1,62 +1,25 @@
 # TFT 뉴비 헬퍼
 
-로컬·내부망 전용 Teamfight Tactics 뉴비용 덱 추천 웹 헬퍼 (개인 토이프로젝트).
+로컬·내부망 전용 TFT 덱 추천 웹 앱입니다. 왼쪽에서 보유 유닛과 아이템을 고르면 오른쪽에 추천 덱이 표시됩니다. 덱을 클릭하면 구성 유닛·핵심 아이템·출처 통계를 펼쳐 볼 수 있습니다. [PRD](./PRD.md)를 참고하세요.
 
-- **PRD:** [PRD.md](./PRD.md)
-- **구현 태스크(MVP):** [TASKS.md](./TASKS.md)
-
-## 한 줄
-
-KR 에메랄드+ 매치를 로컬에 모아 둔 뒤, 판 중 **유닛 ≥2**를 수동 입력하면 사전 계산된 메타 덱 Top-N을 추천합니다. 클라이언트 연동·오버레이·자동 선택은 없습니다.
-
-## 범위 (MVP)
-
-| 포함 | 제외(이후) |
-| --- | --- |
-| 유닛 기반 추천 (Jaccard) | 아이템 조합 추천 |
-| 패치 변경점 뷰 | 증강 가중·상징 점수 |
-| 로컬 배치 (시작 + 15:00 KST) | 공인 호스팅 |
-
-## 제안 스택
-
-Python FastAPI + SQLite + APScheduler · React/Vite — 상세는 `TASKS.md`의 Proposed tech stack.
+현재 조합은 [LoLCHESS 추천메타](https://lolchess.gg/meta)에서 수집해 저장한 스냅샷입니다. 덱 전체 유닛과 유닛별 장착 아이템을 표시하고, 각 카드의 **공략 페이지 열기**는 해당 덱의 LoLCHESS 상세 페이지를 엽니다. 추천메타에는 등수·표본 통계를 제공하지 않아 해당 수치는 표시하지 않습니다. Riot API와 API 키를 사용하지 않으며, 자동·정기 수집도 하지 않습니다. 챔피언·아이템 이름과 이미지는 Community Dragon 데이터를 사용합니다.
 
 ## 로컬 실행
 
-1. Python 3.12+와 Node.js 20+를 설치합니다.
-2. 백엔드 가상환경과 의존성을 설치합니다.
+Python 3.12+와 Node.js 20+가 필요합니다. 저장소 루트에서 실행합니다.
 
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r backend\requirements.txt
 Copy-Item .env.example .env
-```
-
-`.env`의 `RIOT_API_KEY`에 개인 Riot API 키를 직접 입력합니다. 키는 환경변수로만
-주입하며 저장소에 커밋하지 않습니다. 이 프로젝트는 로컬·내부망 전용이므로 공개
-서비스에 Personal 키를 사용하지 않습니다.
-
-3. DB를 만들고 CDragon 유닛 데이터를 로드합니다.
-
-```powershell
 python -m backend.cli init-db
 python -m backend.cli load-cdragon
-```
-
-4. API를 실행합니다. 시작 시 배치를 한 번 실행하고, 매일 15:00 Asia/Seoul에
-자동 실행합니다. 15:00에 컴퓨터가 꺼져 있으면 다음 시작 때 catch-up을 시도하며,
-실패 시 기존 스냅샷을 유지합니다.
-
-```powershell
+python -m backend.cli import-lolchess
 python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```
 
-실제 수집을 검증하려면 API 키가 설정된 상태에서 `python -m backend.cli collect`를
-실행하고, `data/tft.sqlite3`의 players/matches/participants 행을 확인합니다.
-샘플 데이터로 로직만 검증하려면 `python -m pytest backend -q`를 실행합니다.
-
-5. 별도 터미널에서 프론트를 실행합니다.
+별도 터미널에서 프론트를 실행합니다.
 
 ```powershell
 cd frontend
@@ -64,13 +27,14 @@ npm install
 npm run dev
 ```
 
-브라우저에서 `http://127.0.0.1:5173`을 엽니다. 서버를 다른 내부망 장치에
-노출할 때만 명시적으로 `--host 0.0.0.0`을 사용하십시오.
+브라우저에서 `http://127.0.0.1:5173`을 엽니다. 재시작할 때는 저장소 루트의 `restart-local.bat`을 실행하세요. 스크립트가 시작한 API와 프론트 프로세스의 PID를 기록하고, 다음 실행 때 PID와 이미지 이름을 함께 확인해 해당 프로세스만 종료합니다. 데이터 갱신은 원하는 때 Community Dragon을 불러오고, `data/lolchess_snapshot.tsv`와 `data/lolchess_unit_items.tsv` 스냅샷을 `python -m backend.cli import-lolchess`로 저장합니다. 추천 요청은 로컬 DB만 읽습니다. 패치 변경점 메뉴는 공식 TFT 패치 노트 1개를 불러옵니다.
+
+## 확인
+
+`http://127.0.0.1:8000/health`의 `reference_comp_n`으로 저장된 조합 수를 확인할 수 있습니다. 유닛 1개 이상을 클릭하면 해당 유닛이 포함된 덱을 추천하고, 완성 아이템 1개 또는 재료 3개 이상을 클릭하면 아이템 추천이 표시됩니다. `python -m pytest backend -q`로 백엔드 검증을 실행할 수 있습니다.
+
+내부망의 다른 장치에서는 실행 PC의 사설 IP로 `http://<사설-IP>:5173`에 접속합니다. `restart-local.bat`은 프론트와 API를 내부망 인터페이스에 바인딩하며, 프론트가 API 요청을 프록시합니다. Windows 방화벽이 연결을 차단하면 실행 PC에서 TCP 5173 인바운드 허용 규칙을 추가하세요. 공개 호스팅, 클라이언트 오버레이, LCU·메모리 읽기, 자동 플레이 기능은 없습니다.
 
 ## Riot 고지
 
 TFT 뉴비 헬퍼 isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
-
-## 라이선스
-
-개인 토이프로젝트. 별도 라이선스 명시 전까지 비공식·비상업용으로만 사용.

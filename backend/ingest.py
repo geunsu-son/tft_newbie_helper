@@ -49,7 +49,8 @@ def _store_match(db, match: dict) -> None:
              json_text(_participant_units(participant)),
              json_text(participant.get("traits", [])),
              json_text(participant.get("augments", [])),
-             json_text(participant.get("items", []))),
+             json_text([item for unit in participant.get("units", [])
+                        for item in unit.get("itemNames", [])])),
         )
 
 

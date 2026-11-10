@@ -15,6 +15,7 @@ from .ingest import collect
 class Board:
     units: set[str]
     placement: int
+    items: tuple[str, ...] = ()
 
 
 def jaccard(left: set[str], right: set[str]) -> float:
@@ -65,14 +66,16 @@ def build_features(path=None) -> tuple[int, int]:
     init_db(path)
     with transaction(path) as db:
         rows = db.execute(
-            "SELECT units_json, placement FROM participants WHERE placement BETWEEN 1 AND 8"
+            "SELECT units_json, placement, items_json FROM participants WHERE placement BETWEEN 1 AND 8"
         ).fetchall()
-        boards = [Board(set(json.loads(row["units_json"])), row["placement"]) for row in rows]
+        boards = [Board(set(json.loads(row["units_json"])), row["placement"],
+                        tuple(json.loads(row["items_json"]))) for row in rows]
         n_total = len(boards)
         n_min = max(30, math.ceil(0.005 * n_total))
         groups = cluster_boards(boards)
         now = dt.datetime.now(dt.UTC).isoformat()
         db.execute("DELETE FROM unit_cluster_index")
+        db.execute("DELETE FROM cluster_items")
         db.execute("DELETE FROM clusters")
         visible_id = 0
         for group in groups:
@@ -95,6 +98,10 @@ def build_features(path=None) -> tuple[int, int]:
                     "INSERT INTO unit_cluster_index(unit_id,cluster_id) VALUES(?,?)",
                     (unit, visible_id),
                 )
+            counts = Counter(item for board in group for item in set(board.items))
+            for item_id, count in counts.items():
+                db.execute("INSERT INTO cluster_items VALUES(?,?,?)",
+                           (visible_id, item_id, count / len(group)))
         db.execute(
             "INSERT OR REPLACE INTO app_meta(key,value) VALUES('last_batch_at',?)", (now,)
         )

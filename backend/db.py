@@ -26,6 +26,25 @@ CREATE TABLE IF NOT EXISTS units (
   unit_id TEXT PRIMARY KEY, name_ko TEXT NOT NULL, name_en TEXT,
   icon TEXT, set_number INTEGER, updated_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS items (
+  item_id TEXT PRIMARY KEY, name_ko TEXT NOT NULL, icon TEXT,
+  components_json TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS cluster_items (
+  cluster_id INTEGER NOT NULL, item_id TEXT NOT NULL, frequency REAL NOT NULL,
+  PRIMARY KEY(cluster_id, item_id)
+);
+CREATE TABLE IF NOT EXISTS reference_comps (
+  comp_id TEXT PRIMARY KEY, name TEXT NOT NULL, units_json TEXT NOT NULL,
+  items_json TEXT NOT NULL, avg_placement REAL, top4_rate REAL,
+  win_rate REAL, sample_n INTEGER, source_url TEXT NOT NULL,
+  patch TEXT NOT NULL, region TEXT NOT NULL, tier TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS reference_comp_unit_items (
+  comp_id TEXT NOT NULL, unit_id TEXT NOT NULL, items_json TEXT NOT NULL,
+  PRIMARY KEY(comp_id, unit_id)
+);
 CREATE TABLE IF NOT EXISTS batch_runs (
   id INTEGER PRIMARY KEY AUTOINCREMENT, started_at TEXT NOT NULL,
   finished_at TEXT, status TEXT NOT NULL, sample_n INTEGER DEFAULT 0,
@@ -61,6 +80,11 @@ def connect(path: str | Path | None = None) -> sqlite3.Connection:
 def init_db(path: str | Path | None = None) -> None:
     with connect(path) as connection:
         connection.executescript(SCHEMA)
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(units)")}
+        if "cost" not in columns:
+            connection.execute("ALTER TABLE units ADD COLUMN cost INTEGER")
+        if "traits_json" not in columns:
+            connection.execute("ALTER TABLE units ADD COLUMN traits_json TEXT NOT NULL DEFAULT '[]'")
 
 
 @contextmanager

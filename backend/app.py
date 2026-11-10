@@ -10,21 +10,15 @@ from pydantic import BaseModel, Field
 
 from .db import connect, init_db
 from .patch_notes import fetch_official_patch_notes
-from .recommend import recommend_units
-from .scheduler import start_scheduler
+from .recommend import recommend_items, recommend_units
 
 load_dotenv()
-_scheduler = None
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global _scheduler
     init_db()
-    _scheduler = start_scheduler(run_now=os.getenv("RUN_BATCH_ON_START", "1") == "1")
     yield
-    if _scheduler:
-        _scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title="TFT 뉴비 헬퍼", lifespan=lifespan)
@@ -41,11 +35,15 @@ class RecommendationRequest(BaseModel):
     top_n: int = Field(default=5, ge=3, le=5)
 
 
+class ItemRecommendationRequest(BaseModel):
+    item_ids: list[str] = Field(max_length=20)
+
+
 @app.get("/health")
 def health():
     with connect() as db:
         row = db.execute(
-            "SELECT key,value FROM app_meta WHERE key IN ('last_batch_at','sample_n','n_min')"
+            "SELECT key,value FROM app_meta WHERE key IN ('last_batch_at','sample_n','n_min','reference_updated_at','reference_comp_n','reference_source')"
         ).fetchall()
     return {"ok": True, "meta": {item["key"]: item["value"] for item in row}}
 
@@ -56,7 +54,7 @@ def units():
         return [
             dict(row)
             for row in db.execute(
-                "SELECT unit_id,name_ko,name_en,icon FROM units ORDER BY name_ko"
+                "SELECT unit_id,name_ko,name_en,icon,cost,traits_json FROM units ORDER BY name_ko"
             )
         ]
 
@@ -64,9 +62,21 @@ def units():
 @app.post("/recommend/units")
 def recommend(request: RecommendationRequest):
     unit_ids = list(dict.fromkeys(request.unit_ids))
-    if len(unit_ids) < 2:
-        raise HTTPException(status_code=400, detail="유닛을 2개 이상 입력해 주세요.")
+    if not unit_ids:
+        raise HTTPException(status_code=400, detail="유닛을 1개 이상 입력해 주세요.")
     return {"recommendations": recommend_units(unit_ids, request.top_n)}
+
+
+@app.get("/items")
+def items():
+    with connect() as db:
+        return [dict(row) for row in db.execute(
+            "SELECT item_id,name_ko,icon,components_json FROM items ORDER BY name_ko")]
+
+
+@app.post("/recommend/items")
+def items_recommendation(request: ItemRecommendationRequest):
+    return {"recommendations": recommend_items(request.item_ids)}
 
 
 @app.get("/patch-notes")
