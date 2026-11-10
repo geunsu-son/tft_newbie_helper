@@ -1,6 +1,6 @@
 # TFT 뉴비 헬퍼 — MVP 구현 태스크
 
-PRD(`PRD.md`)의 **MVP 범위**만 구현한다: 유닛≥2 추천(Jaccard) + 패치 변경점 뷰 + 로컬 배치.  
+PRD(`PRD.md`)의 **MVP 범위**만 구현한다: 유닛≥1 추천(Jaccard) + 패치 변경점 뷰 + 로컬 배치.  
 아이템 추천·증강 가중·상징 점수(`S_emblem`)는 **M4(이후)** — MVP에 넣지 않는다.
 
 ## Proposed tech stack (제안 — PRD 미고정)
@@ -33,60 +33,60 @@ tft_newbie_helper/
 
 ## M0 — PRD·키·등록
 
-- [ ] **T0.1** Personal Riot API 키 발급·로컬 `.env`만 사용 (레포 미포함)
+- [x] **T0.1** Personal Riot API 키 발급·로컬 `.env`만 사용 (레포 미포함)
 - [ ] **T0.2** Developer Portal에 개인/토이 제품 등록(권장/요구)
-- [ ] **T0.3** README에 미공식 고지문·로컬 실행·내부망 전용·에메랄드+·유닛≥2 게이트 명시
+- [x] **T0.3** README에 미공식 고지문·로컬 실행·내부망 전용·에메랄드+·유닛≥1 게이트 명시
 
 **완료 기준(Acceptance)**
 
-- [ ] 키가 환경변수로만 주입됨을 문서화
-- [ ] README에 Riot 미공식 문구 + 비목표(오버레이/자동화 금지) 명시
-- [ ] `PRD.md` / `TASKS.md`가 레포에 있음
+- [x] 키가 환경변수로만 주입됨을 문서화
+- [x] README에 Riot 미공식 문구 + 비목표(오버레이/자동화 금지) 명시
+- [x] `PRD.md` / `TASKS.md`가 레포에 있음
 
 ---
 
 ## M1 — KR 시드 + 매치 PoC + CDragon
 
-- [ ] **T1.1** `tft-league-v1`(KR): challenger / grandmaster / master + `entries/EMERALD|DIAMOND/I–IV` 페이지 수집
-- [ ] **T1.2** `tft-match-v1`(ASIA): 시드 puuid → match id → match detail (Personal 한도 준수·백오프)
-- [ ] **T1.3** 랭크 큐·현재 세트 필터, Participant 필드 저장(placement, units, traits, augments, items)
-- [ ] **T1.4** CDragon TFT 정적 데이터 로드(챔피언 id↔이름 등). UI 하드코딩 챔프명 금지
-- [ ] **T1.5** SQLite 스키마: players/matches/participants/units(+items) · batch_runs
+- [x] **T1.1** `tft-league-v1`(KR): challenger / grandmaster / master + `entries/EMERALD|DIAMOND/I–IV` 페이지 수집
+- [x] **T1.2** `tft-match-v1`(ASIA): 시드 puuid → match id → match detail (Personal 한도 준수·백오프)
+- [x] **T1.3** 랭크 큐·현재 세트 필터, Participant 필드 저장(placement, units, traits, augments, items)
+- [x] **T1.4** CDragon TFT 정적 데이터 로드(챔피언 id↔이름 등). UI 하드코딩 챔프명 금지
+- [x] **T1.5** SQLite 스키마: players/matches/participants/units(+items) · batch_runs
 
 **완료 기준**
 
-- [ ] KR 에메랄드+ 시드 → 매치 상세가 DB에 적재되는 스크립트/커맨드가 동작
-- [ ] Personal rate limit에 걸리기 전 429 처리·재시도
-- [ ] CDragon에서 유닛 목록을 API/스크립트로 조회 가능
+- [x] KR 에메랄드+ 시드 → 매치 상세가 DB에 적재되는 스크립트/커맨드가 동작
+- [x] Personal rate limit에 걸리기 전 429 처리·재시도
+- [x] CDragon에서 유닛 목록을 API/스크립트로 조회 가능
 
 ---
 
 ## M2 — 클러스터·점수·배치·n_min
 
-- [ ] **T2.1** 최종 보드 유닛 집합 Jaccard 클러스터링 (코사인 미사용)
-- [ ] **T2.2** 클러스터 통계: 평균 등수, Top4율, 승률(=placement 1), 핵심 유닛, 표본 n
-- [ ] **T2.3** 매 배치 `N`으로 \(n_{\min}=\max(30,\lceil 0.005\cdot N\rceil)\) 재계산·적용, n < n_min 숨김
-- [ ] **T2.4** \(S_{\mathrm{unit}}\), \(S_{\mathrm{final}}\) (초안 \(w_m=0.65\), \(w_p=0.35\)) · Top-N(3~5)
-- [ ] **T2.5** 유닛→후보 덱 사전계산/역인덱스 테이블
-- [ ] **T2.6** 스케줄: **프로세스 시작 시** 배치 + **매일 15:00 Asia/Seoul** · 놓친 15:00은 **다음 시작 catch-up** · 실패 시 직전 스냅샷 유지
+- [x] **T2.1** 최종 보드 유닛 집합 Jaccard 클러스터링 (코사인 미사용)
+- [x] **T2.2** 클러스터 통계: 평균 등수, Top4율, 승률(=placement 1), 핵심 유닛, 표본 n
+- [x] **T2.3** 매 배치 `N`으로 \(n_{\min}=\max(30,\lceil 0.005\cdot N\rceil)\) 재계산·적용, n < n_min 숨김
+- [x] **T2.4** \(S_{\mathrm{unit}}\), \(S_{\mathrm{final}}\) (초안 \(w_m=0.65\), \(w_p=0.35\)) · Top-N(3~5)
+- [x] **T2.5** 유닛→후보 덱 사전계산/역인덱스 테이블
+- [x] **T2.6** 스케줄: **프로세스 시작 시** 배치 + **매일 15:00 Asia/Seoul** · 놓친 15:00은 **다음 시작 catch-up** · 실패 시 직전 스냅샷 유지
 
 **완료 기준**
 
-- [ ] 배치 1회 후 클러스터·n_min·사전계산 테이블이 DB에 존재
-- [ ] 유닛 집합(≥2) 입력 시 Top-N이 매치 API 재호출 없이 DB 조회로만 나옴
-- [ ] 시작/15:00/catch-up 동작을 로그 또는 테스트로 확인
+- [x] 배치 1회 후 클러스터·n_min·사전계산 테이블이 DB에 존재
+- [x] 유닛 집합(≥1) 입력 시 하나 이상 겹치는 덱 Top-N이 매치 API 재호출 없이 DB 조회로만 나옴
+- [x] 시작/15:00/catch-up 동작을 로그 또는 테스트로 확인
 
 ---
 
 ## M3 — 로컬 MVP UI (유닛 추천 + 패치)
 
-- [ ] **T3.1** FastAPI: `POST /recommend/units` (유닛≥2 게이트, 미만 시 안내 메시지)
-- [ ] **T3.2** React/Vite: 유닛 검색·다중선택·성급, 판 중 재입력(직전 입력 유지)
-- [ ] **T3.3** 결과 카드: 덱명, 평균 등수, Top4율, 승률(정의 표기), 유사도, 다음 유닛, 표본 n
-- [ ] **T3.4** 데이터 기준 시각·패치·KR·에메랄드+ 고정 고지, 콜드스타트 배너, 티어 필터 UI **없음**
-- [ ] **T3.5** 패치 변경점 뷰(간단): 공식 TFT 패치 노트 기반 챔피언/아이템/증강 상향·하향 리스트(+출처 링크)
-- [ ] **T3.6** 로컬 바인딩(예: `127.0.0.1` 또는 내부망 인터페이스). 공인 배포 설정 없음
-- [ ] **T3.7** 추천 조회 p95 < 300ms 목표 측정(로컬 DB 기준, 네트워크 제외)
+- [x] **T3.1** FastAPI: `POST /recommend/units` (유닛≥1 매칭, 미선택 시 안내 메시지)
+- [x] **T3.2** React/Vite: 유닛 검색·다중선택·성급, 판 중 재입력(직전 입력 유지)
+- [x] **T3.3** 결과 카드: 덱명, 평균 등수, Top4율, 승률(정의 표기), 유사도, 다음 유닛, 표본 n
+- [x] **T3.4** 데이터 기준 시각·패치·KR·에메랄드+ 고정 고지, 콜드스타트 배너, 티어 필터 UI **없음**
+- [x] **T3.5** 패치 변경점 뷰(간단): 공식 TFT 패치 노트 기반 챔피언/아이템/증강 상향·하향 리스트(+출처 링크)
+- [x] **T3.6** 로컬 바인딩(예: `127.0.0.1` 또는 내부망 인터페이스). 공인 배포 설정 없음
+- [x] **T3.7** 추천 조회 p95 < 300ms 목표 측정(로컬 DB 기준, 네트워크 제외)
 
 **완료 기준**
 
@@ -110,7 +110,7 @@ PRD상 이후 단계. Codex MVP 작업 범위 **밖**.
 ## 명시적 금지 (모든 마일스톤)
 
 - 게임 클라이언트 오버레이 / LCU·메모리 읽기 / 자동 선택·롤링
-- lolchess.gg·tft.op.gg HTML 스크래핑을 1차 데이터 소스로 사용
+- lolchess.gg·tft.op.gg HTML 자동 스크래핑을 1차 데이터 소스로 사용 (브라우저에서 확인한 수동 스냅샷은 허용)
 - Legend / Legend 기반 증강 승률 표시
 - Personal 키로 공개 서비스·오픈 알파 운영
 - 공인 호스팅·외부 공개 배포(현 단계)
